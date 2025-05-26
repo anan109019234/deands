@@ -457,9 +457,10 @@ input[type="text"] {
         grid-template-rows: auto auto auto auto;
         grid-template-areas:
             "logo"
+            "cv"
             "games"
             "chatbot"
-            "cv";
+            ;
         padding: 10px;
         gap: 15px;
         height: auto;
