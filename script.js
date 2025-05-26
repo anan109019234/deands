@@ -1,4 +1,3 @@
-// script.js
 document.addEventListener('DOMContentLoaded', () => {
     // === DOM Elements ===
     const introScreen = document.getElementById('intro-screen');
@@ -15,15 +14,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatbotTerminalOutput = document.getElementById('chatbot-terminal-output');
     const chatbotTerminalInput = document.getElementById('chatbot-terminal-input');
 
+    // Tambahkan referensi ke elemen terminal dan logo untuk animasi
+    const cvTerminal = document.querySelector('.cv-terminal');
+    const gamesTerminal = document.querySelector('.games-terminal');
+    const chatbotTerminal = document.querySelector('.chatbot-terminal');
+    const logoBottom = document.querySelector('.logo-bottom');
+
+    // Kumpulan semua jendela di portfolio untuk inisialisasi dan reset
+    const portfolioWindows = [cvTerminal, gamesTerminal, chatbotTerminal, logoBottom];
+
     // === Matrix Canvas Elements ===
     const matrixCanvasLeft = document.getElementById('matrix-left');
     const matrixCtxLeft = matrixCanvasLeft.getContext('2d');
     const matrixCanvasRight = document.getElementById('matrix-right');
     const matrixCtxRight = matrixCanvasRight.getContext('2d');
 
+    // Elemen jumpscare GIF dan audio
+    const jumpscareGif = document.getElementById('jumpscare-gif');
+    const jumpscareAudio = document.getElementById('jumpscare-audio');
+
+    const grudgeSound = document.getElementById('grudge-sound');
+
     let matrixAnimationIdLeft = null;
     let matrixAnimationIdRight = null;
-
 
     // === State Variables ===
     let gamesCurrentState = 'menu'; // 'menu', 'flappybird', 'snake'
@@ -31,6 +44,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let flappyBirdGameInterval;
     let snakeGameInterval;
+
+    let cvTyped = false; // Memindahkan ini ke atas agar scope-nya global
+
+    // --- KODE UNTUK PERGANTIAN LOGO DIMULAI DI SINI ---
+const logo = document.getElementById('main-logo-return');
+    const logo1 = 'assets/p1.png';
+    const logo2 = 'assets/p2.png';
+
+    let currentLogo = logo1; // Pastikan logo awal adalah p1.png
+
+    // Gunakan setTimeout untuk jeda awal (saat ini 30 detik) sebelum pergantian pertama
+    setTimeout(() => {
+        // Lakukan pergantian gambar pertama kali
+        if (currentLogo === logo1) {
+            logo.src = logo2;
+            currentLogo = logo2;
+            // --- BARU: Putar suara grudge saat p2.png tampil pertama kali ---
+            if (grudgeSound) { // Pastikan elemen grudgeSound ditemukan
+                grudgeSound.currentTime = 0; // Reset audio ke awal
+                grudgeSound.play().catch(error => { console.error("Gagal memutar grudge sound (swap pertama):", error); });
+            }
+        } else {
+            // Ini akan mengeksekusi jika currentLogo entah bagaimana sudah logo2
+            logo.src = logo1;
+            currentLogo = logo1;
+        }
+
+        // Kemudian, setelah pergantian pertama, mulai loop setiap 10 detik
+        setInterval(() => {
+            if (currentLogo === logo1) {
+                logo.src = logo2;
+                currentLogo = logo2;
+                // --- BARU: Putar suara grudge setiap kali p2.png tampil dalam loop ---
+                if (grudgeSound) { // Pastikan elemen grudgeSound ditemukan
+                    grudgeSound.currentTime = 0; // Reset audio ke awal agar bisa diputar lagi
+                    grudgeSound.play().catch(error => { console.error("Gagal memutar grudge sound (loop):", error); });
+                }
+            } else {
+                logo.src = logo1;
+                currentLogo = logo1;
+            }
+        }, 13000); // Loop setiap 10 detik (10000 milidetik)
+
+    }, 10000); // Jeda awal 30 detik (30000 milidetik) sebelum swap pertama terjadi
 
     // --- Fungsi Matrix Effect ---
     function initializeMatrixEffect(canvas, ctx) {
@@ -47,6 +104,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const drops = [];
         for (let i = 0; i < columns; i++) {
             drops[i] = 1; // Mulai dari baris pertama
+        }
+
+        // Pastikan animasi sebelumnya dihentikan jika ada
+        let currentAnimationId = canvas.dataset.animationId ? parseInt(canvas.dataset.animationId) : null;
+        if (currentAnimationId) {
+            clearInterval(currentAnimationId);
         }
 
         function drawMatrix() {
@@ -72,7 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Jalankan animasi
-        return setInterval(drawMatrix, 50); // Kecepatan animasi
+        const newAnimationId = setInterval(drawMatrix, 50); // Kecepatan animasi
+        canvas.dataset.animationId = newAnimationId; // Simpan ID animasi di dataset canvas
+        return newAnimationId;
     }
 
     // --- Fungsi untuk Menghentikan Animasi Matrix ---
@@ -82,113 +147,354 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Inisialisasi Tampilan Awal ---
+    // Pastikan intro screen terlihat di awal
+    introScreen.style.display = 'flex';
+    introScreen.classList.add('slide-down-from-top'); // Pastikan intro screen dalam kondisi 'masuk'
+
+    // Pastikan portfolio tersembunyi sepenuhnya di awal
+    mainPortfolio.style.display = 'none';
+    mainPortfolio.classList.add('slide-up-to-top'); // Untuk memastikan ia tersembunyi dari atas secara default jika belum dimuat
+
+    // Set initial state for individual portfolio windows (off-screen and transparent)
+    portfolioWindows.forEach(windowEl => {
+        windowEl.classList.add('initial-state');
+    });
+
+    // Inisialisasi Matrix Effect saat halaman dimuat
+    matrixAnimationIdLeft = initializeMatrixEffect(matrixCanvasLeft, matrixCtxLeft);
+    matrixAnimationIdRight = initializeMatrixEffect(matrixCanvasRight, matrixCtxRight);
+
+
     // --- Fungsi untuk Transisi Halaman ---
-    function showPortfolio() {
+    async function showPortfolio() {
         // Hentikan animasi Matrix saat beralih ke portfolio
         stopMatrixAnimation(matrixAnimationIdLeft);
         stopMatrixAnimation(matrixAnimationIdRight);
 
-        // Hapus kelas 'hidden' terlebih dahulu agar transisi bisa berjalan
-        mainPortfolio.classList.remove('hidden');
+        // Hapus kelas 'fade-in' dari elemen intro
+        // Ini agar jika kembali ke intro, fade-in bisa terpicu lagi
+        document.querySelectorAll('.intro-content, .intro-photo, .intro-heading, .ascii-art-intro, .launch-btn, .copyright-text')
+            .forEach(el => el.classList.remove('fade-in'));
 
-        // Tambahkan kelas untuk floating in dari bawah
-        mainPortfolio.classList.add('slide-up-from-bottom');
+        // Mulai animasi fade-out untuk intro screen (geser ke atas)
+        introScreen.classList.remove('slide-down-from-top');
+        introScreen.classList.add('fade-out'); // Ini juga mengatur translateY(-100vh)
 
-        // Sembunyikan intro screen dengan efek floating ke atas
-        introScreen.classList.add('fade-out');
+        // Tunggu transisi intro screen selesai
+        // Gunakan Promise.race untuk mengatasi jika transitionend tidak terpicu
+        await Promise.race([
+            new Promise(resolve => {
+                introScreen.addEventListener('transitionend', function handler() {
+                    introScreen.removeEventListener('transitionend', handler);
+                    resolve();
+                }, { once: true });
+            }),
+            new Promise(resolve => setTimeout(resolve, 800)) // Fallback (sedikit lebih lama dari durasi CSS)
+        ]);
 
-        // Setelah transisi intro selesai, pastikan intro benar-benar tidak terlihat
-        introScreen.addEventListener('transitionend', function handler() {
-            if (introScreen.classList.contains('fade-out')) {
-                introScreen.style.display = 'none'; // Sembunyikan secara permanen
-            }
-            introScreen.removeEventListener('transitionend', handler);
+        introScreen.style.display = 'none'; // Sembunyikan sepenuhnya setelah transisi
+        introScreen.classList.remove('fade-out'); // Hapus kelas fade-out setelah selesai
+
+
+        // Reset semua kelas slide-out jika ada dari kali sebelumnya
+        portfolioWindows.forEach(windowEl => {
+            windowEl.classList.remove('slide-out-left', 'slide-out-top', 'slide-out-bottom', 'slide-out-right');
+            windowEl.classList.add('initial-state'); // Pastikan kembali ke posisi awal untuk animasi masuk
         });
+
+
+        // Tampilkan main portfolio (sebagai grid)
+        mainPortfolio.style.display = 'grid'; // Pastikan ini 'grid' agar layout berfungsi
+        // Hapus slide-up-to-top agar bisa slide-down-from-top dengan benar
+        mainPortfolio.classList.remove('slide-up-to-top');
+        mainPortfolio.classList.add('active', 'slide-down-from-top'); // Aktifkan display grid dan animasikan masuk
+
+        // Tunggu mainPortfolio selesai slide-down
+        await Promise.race([
+            new Promise(resolve => {
+                mainPortfolio.addEventListener('transitionend', function handler() {
+                    mainPortfolio.removeEventListener('transitionend', handler);
+                    resolve();
+                }, { once: true });
+            }),
+            new Promise(resolve => setTimeout(resolve, 100)) // Fallback
+        ]);
+
+        // Mulai animasi masuk individual terminal satu per satu setelah mainPortfolio sepenuhnya muncul
+        await new Promise(resolve => setTimeout(resolve, 50)); // Sedikit delay sebelum memulai animasi terminal
+
+        cvTerminal.classList.remove('initial-state');
+        cvTerminal.classList.add('slide-in-left');
+        await new Promise(resolve => setTimeout(resolve, 100)); // Delay untuk terminal berikutnya
+
+        gamesTerminal.classList.remove('initial-state');
+        gamesTerminal.classList.add('slide-in-top');
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        chatbotTerminal.classList.remove('initial-state');
+        chatbotTerminal.classList.add('slide-in-bottom');
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        logoBottom.classList.remove('initial-state');
+        logoBottom.classList.add('slide-in-right');
+
+        // Mulai pengetikan CV setelah semua elemen masuk
+        // Beri waktu lebih untuk semua transisi selesai sebelum mengetik
+        setTimeout(() => {
+            if (!cvTyped) {
+                cvTerminalOutput.classList.add('typing');
+                typeWriter(cvTerminalOutput, cvContent, 0, 10);
+                cvTyped = true;
+            }
+        }, 800); // Sesuaikan delay ini agar sesuai dengan animasi masuk terakhir
     }
 
-    // Fungsi untuk me-reload halaman
-    function reloadPage() {
-        location.reload();
+    async function returnToIntro() {
+        // Hentikan semua game interval
+        clearInterval(flappyBirdGameInterval);
+        clearInterval(snakeGameInterval);
+
+        // Mulai animasi keluar satu per satu secara berurutan
+        logoBottom.classList.remove('slide-in-right');
+        logoBottom.classList.add('slide-out-right');
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        chatbotTerminal.classList.remove('slide-in-bottom');
+        chatbotTerminal.classList.add('slide-out-bottom');
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        gamesTerminal.classList.remove('slide-in-top');
+        gamesTerminal.classList.add('slide-out-top');
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        cvTerminal.classList.remove('slide-in-left');
+        cvTerminal.classList.add('slide-out-left');
+
+        // Tunggu semua animasi keluar dari jendela individual selesai
+        await new Promise(resolve => setTimeout(resolve, 700)); // Durasi transisi 0.7s
+
+        // Animasi main portfolio keluar (geser ke atas)
+        mainPortfolio.classList.remove('active', 'slide-down-from-top'); // Hapus kelas masuk
+        mainPortfolio.classList.add('slide-up-to-top'); // Tambahkan kelas keluar
+
+        // Tunggu transisi main portfolio selesai
+        await Promise.race([
+            new Promise(resolve => {
+                mainPortfolio.addEventListener('transitionend', function handler() {
+                    mainPortfolio.removeEventListener('transitionend', handler);
+                    resolve();
+                }, { once: true });
+            }),
+            new Promise(resolve => setTimeout(resolve, 800)) // Fallback
+        ]);
+
+        mainPortfolio.style.display = 'none'; // Sembunyikan sepenuhnya setelah transisi
+        mainPortfolio.classList.remove('slide-up-to-top'); // Hapus kelas keluar setelah selesai
+
+        // Reset kelas slide-out dan tambahkan initial-state agar siap untuk masuk lagi nanti
+        portfolioWindows.forEach(windowEl => {
+            windowEl.classList.remove('slide-out-left', 'slide-out-top', 'slide-out-bottom', 'slide-out-right');
+            windowEl.classList.add('initial-state');
+        });
+
+        // Tampilkan kembali intro screen
+        introScreen.style.display = 'flex'; // Kembalikan display
+        introScreen.classList.remove('fade-out'); // Hapus fade-out
+        introScreen.classList.remove('slide-down-from-top'); // Pastikan tidak ada kelas slide-down yang tersisa dari awal
+
+        // Paksa reflow untuk memastikan kelas dihapus sebelum ditambahkan lagi (penting untuk animasi ulang)
+        void introScreen.offsetWidth;
+
+        // Tambahkan kelas slide-down-from-top ke introScreen untuk memulai animasi masuk
+        introScreen.classList.add('slide-down-from-top');
+
+        // Animasikan elemen-elemen di intro screen agar fade in satu per satu
+        // Dapatkan referensi ulang jika perlu, atau pastikan sudah ada di scope
+        const introElementsToFade = document.querySelectorAll('.intro-content, .intro-photo, .intro-heading, .ascii-art-intro, .launch-btn, .copyright-text');
+
+        // Remove previous fade-in classes to re-trigger animation
+        introElementsToFade.forEach(el => {
+            el.classList.remove('fade-in');
+        });
+
+        // Re-add fade-in classes with delay for sequential effect
+        setTimeout(() => document.querySelector('.intro-content').classList.add('fade-in'), 50);
+        setTimeout(() => document.querySelector('.intro-photo').classList.add('fade-in'), 200);
+        setTimeout(() => document.querySelector('.intro-heading').classList.add('fade-in'), 400);
+        setTimeout(() => document.querySelector('.ascii-art-intro').classList.add('fade-in'), 600);
+        setTimeout(() => launchBtn.classList.add('fade-in'), 800);
+        setTimeout(() => document.querySelector('.copyright-text').classList.add('fade-in'), 1000);
+
+
+        // Re-initialize matrix effect
+        matrixAnimationIdLeft = initializeMatrixEffect(matrixCanvasLeft, matrixCtxLeft);
+        matrixAnimationIdRight = initializeMatrixEffect(matrixCanvasRight, matrixCtxRight);
+
+        // Reset cvTyped agar mengetik ulang saat masuk lagi
+        cvTyped = false;
+        cvTerminalOutput.innerHTML = ''; // Kosongkan CV
+        showGamesMenu(); // Reset game menu
+        showChatbotMenu(); // Reset chatbot menu
     }
 
     // --- Event Listeners untuk Transisi ---
     launchBtn.addEventListener('click', showPortfolio);
-    mainLogoReturn.addEventListener('click', reloadPage);
 
-    // Tambahkan event listener untuk semua tombol 'x'
-    closeButtons.forEach(button => {
-        button.addEventListener('click', reloadPage);
+    // Menambahkan event listener untuk mengatasi klik di seluruh area intro-screen
+    // Ini memastikan intro bisa di-skip bahkan jika tombol tidak diklik langsung
+    introScreen.addEventListener('click', (e) => {
+        // Hanya picu showPortfolio jika klik bukan pada tombol launch atau elemen di dalamnya
+        if (e.target.id !== 'launch-terminal-btn' && !e.target.closest('#launch-terminal-btn')) {
+             // Jika ingin mengizinkan klik di mana saja untuk melanjutkan
+             // showPortfolio();
+        }
     });
 
-    // --- Inisialisasi Matrix Effect saat halaman dimuat ---
-    matrixAnimationIdLeft = initializeMatrixEffect(matrixCanvasLeft, matrixCtxLeft);
-    matrixAnimationIdRight = initializeMatrixEffect(matrixCanvasRight, matrixCtxRight);
+    // Event listener untuk logo di bagian bawah portfolio untuk kembali ke intro
+mainLogoReturn.addEventListener('click', () => {
+    grudgeSound.pause(); // Ini sudah ada, menghentikan di awal jumpscare
+    grudgeSound.currentTime = 0;
+    jumpscareGif.style.objectFit = 'cover';
+    jumpscareGif.style.width = '100%';
+    jumpscareGif.style.height = '100%';
+    jumpscareGif.style.display = 'block';
+
+    // Set audio untuk looping
+    jumpscareAudio.loop = true; // Ini akan membuat audio mengulang
+    jumpscareAudio.play();
+
+    // ... (openFullscreenForImage)
+
+    // Sembunyikan GIF dan hentikan audio setelah 320 detik
+    setTimeout(() => {
+        jumpscareGif.style.display = 'none';
+        jumpscareAudio.pause(); // Hentikan pemutaran audio
+        jumpscareAudio.currentTime = 0; // Opsional: reset audio ke awal
+
+        if (grudgeSound) { // Periksa apakah elemen grudgeSound ditemukan
+            grudgeSound.pause();
+            grudgeSound.currentTime = 0;
+        }
+        
+        // Opsional: Keluar dari fullscreen
+        if (document.fullscreenElement) {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) { /* Safari */
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) { /* IE11 */
+                document.msExitFullscreen();
+            }
+        }
+    }, 3600000); // 3600 detik
+});
+
+
+    closeButtons.forEach(button => {
+        button.addEventListener('click', returnToIntro); // Menggunakan returnToIntro untuk tombol 'x'
+    });
+
+    // === Fungsi Fullscreen untuk Gambar (tetap opsional) ===
+    function openFullscreenForImage(element) {
+        if (element.requestFullscreen) {
+            element.requestFullscreen();
+        } else if (element.webkitRequestFullscreen) { /* Safari */
+            element.webkitRequestFullscreen();
+        } else if (element.msRequestFullscreen) { /* IE11 */
+            element.msRequestFullscreen();
+        }
+    }
+
+    // Tambahkan event listener untuk scroll
+    // Hati-hati dengan ini, bisa menyebabkan perilaku yang tidak diinginkan
+    // jika user hanya ingin scroll intro, bukan langsung ke portfolio.
+    // Saya sarankan hanya mengandalkan tombol 'LAUNCH TERMINAL'.
+    // Jika tetap ingin, pastikan logikanya lebih robust.
+    // Misalnya, hanya aktifkan setelah beberapa detik intro berjalan.
+    let scrollTriggered = false; // Flag untuk mencegah trigger berulang
+    window.addEventListener('scroll', () => {
+        if (!scrollTriggered && window.scrollY > 50 && introScreen.style.display !== 'none') {
+            //showPortfolio(); // Aktifkan jika ingin scroll memicu perpindahan
+            //scrollTriggered = true; // Set flag agar tidak terpicu lagi
+        }
+    });
 
     // Pastikan ukuran canvas diatur ulang jika ukuran jendela berubah
     window.addEventListener('resize', () => {
+        // Hentikan animasi saat resize untuk menghindari glitch
+        stopMatrixAnimation(matrixAnimationIdLeft);
+        stopMatrixAnimation(matrixAnimationIdRight);
+
+        // Atur ulang ukuran canvas
         matrixCanvasLeft.width = matrixCanvasLeft.offsetWidth;
         matrixCanvasLeft.height = window.innerHeight;
         matrixCanvasRight.width = matrixCanvasRight.offsetWidth;
         matrixCanvasRight.height = window.innerHeight;
-        // Opsional: re-initialize drops array for a cleaner look after resize
-        // stopMatrixAnimation(matrixAnimationIdLeft);
-        // stopMatrixAnimation(matrixAnimationIdRight);
-        // matrixAnimationIdLeft = initializeMatrixEffect(matrixCanvasLeft, matrixCtxLeft);
-        // matrixAnimationIdRight = initializeMatrixEffect(matrixCanvasRight, matrixCtxRight);
+
+        // Re-initialize matrix effect setelah resize
+        matrixAnimationIdLeft = initializeMatrixEffect(matrixCanvasLeft, matrixCtxLeft);
+        matrixAnimationIdRight = initializeMatrixEffect(matrixCanvasRight, matrixCtxRight);
+
+        // Jika main portfolio aktif dan layoutnya bergantung pada ukuran,
+        // pertimbangkan untuk memicu redraw atau reset tampilan grid jika diperlukan
+        if (mainPortfolio.classList.contains('active')) {
+             // Ini mungkin tidak diperlukan jika CSS responsif sudah menangani dengan baik.
+             // window.dispatchEvent(new Event('resize')); // Hanya contoh, jangan lakukan jika tidak perlu
+        }
     });
 
-
     // --- A. Terminal Kiri: CV Tampilan ---
-    const cvContent = `
+   const cvContent = `
 Selamat datang di Portofolio Terminal Gede Ananta Pradnya!
 
 ╭───────────────────────────────────────────────╮
-│               DATA PRIBADI                    │
+│               DATA PRIBADI                    │
 ├───────────────────────────────────────────────┤
-│ Nama Lengkap : Gede Ananta Pradnya            │
-│ Tempat, Tgl. Lahir : -                        │
-│ Alamat : -                                    │
-│ Email : -                                     │
-│ Telepon : -                                   │
+│ Nama Lengkap : Gede Ananta Pradnya            │
+│ Tempat, Tgl. Lahir : -                        │
+│ Alamat : -                                    │
+│ Email : -                                     │
+│ Telepon : -                                   │
 ╰───────────────────────────────────────────────╯
 
 ╭───────────────────────────────────────────────╮
-│                 PENDIDIKAN                    │
+│                 PENDIDIKAN                    │
 ├───────────────────────────────────────────────┤
-│ 2021 - Sekarang : Universitas Gunadarma       │
-│                   (Informatika)               │
-│ 2018 - 2021     : SMAK Katolik Santo Yoseph   │
-│                   (IPA)                       │
+│ 2021 - Sekarang : Universitas Gunadarma       │
+│                   (Informatika)               │
+│ 2018 - 2021     : SMAK Katolik Santo Yoseph   │
+│                   (IPA)                       │
 ╰───────────────────────────────────────────────╯
 
 ╭───────────────────────────────────────────────╮
-│                  KEMAMPUAN                    │
+│                  KEMAMPUAN                    │
 ├───────────────────────────────────────────────┤
-│ Bahasa Pemrograman: Python, JavaScript        │
-│ Database          : MySQL, PostgreSQL, MongoDB│
-│ Tools             : Git, Docker, VS Code      │
-│ Bahasa            : Indonesia (Native),       │
-│                     English (Intermediate)    │
+│ Bahasa Pemrograman: Python, JavaScript        │
+│ Database          : MySQL, PostgreSQL, MongoDB│
+│ Tools             : Git, Docker, VS Code      │
+│ Bahasa            : Indonesia (Native),       │
+│                     English (Intermediate)    │
 ╰───────────────────────────────────────────────╯
 
 ╭───────────────────────────────────────────────╮
-│               PROYEK TERPILIH                 │
-├───────────────────────────────────────────────╮
-│ 1. Kobara Secure Chrome Extension             │
-│    (Skills: Python, HTML)                     │
-│ 2. UI/UX Design for MAOS Mobile App           │
-│    (Skills: Figma)                            │
-│ 3. Website Portofolio Terminal (Ini dia!)     │
-│    (HTML, CSS, JavaScript)                    │
+│               PROYEK TERPILIH                 │
+├───────────────────────────────────────────────┤
+│ 1. Kobara Secure Chrome Extension             │
+│    (Skills: Python, HTML)                     │
+│ 2. UI/UX Design for MAOS Mobile App           │
+│    (Skills: Figma)                            │
+│ 3. Website Portofolio Terminal (Ini dia!)     │
+│    (HTML, CSS, JavaScript)                    │
 ╰───────────────────────────────────────────────╯
 
 ╭───────────────────────────────────────────────╮
-│                   PENGALAMAN                  │
+│                   PENGALAMAN                  │
 ├───────────────────────────────────────────────┤
-│ 2025 - 2025 : MK Praktikum Unggulan (DGX)     │
-│               (Asisten)                       │
-│ 2023 - 2024 : Laboratorium Sistem Informasi   │
-│               (Asisten)                       │
+│ 2025 - 2025 : MK Praktikum Unggulan (DGX)     │
+│               (Asisten)                       │
+│ 2023 - 2024 : Laboratorium Sistem Informasi   │
+│               (Asisten)                       │
 ╰───────────────────────────────────────────────╯
 
 \`\`\`
@@ -205,15 +511,6 @@ Namaste -_-
             element.classList.remove('typing');
         }
     }
-
-    let cvTyped = false;
-    mainPortfolio.addEventListener('transitionend', () => {
-        if (!cvTyped && !mainPortfolio.classList.contains('hidden')) {
-            cvTerminalOutput.classList.add('typing');
-            typeWriter(cvTerminalOutput, cvContent, 0, 10);
-            cvTyped = true;
-        }
-    });
 
 
     // --- B. Terminal Kanan Atas: Games ---
@@ -240,7 +537,6 @@ Ketik 'menu' untuk melihat menu ini lagi.
         gamesTerminalInput.focus();
     }
 
-    showGamesMenu();
 
     gamesTerminalInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
@@ -365,7 +661,7 @@ Ketik 'menu' untuk melihat menu ini lagi.
                     if (pipe.segments[y] === '#') {
                         board[y][pipe.x] = '#';
                         if (pipe.x + 1 < FLAPPY_BIRD_WIDTH) {
-                           board[y][pipe.x + 1] = '#';
+                            board[y][pipe.x + 1] = '#';
                         }
                     }
                 }
@@ -503,10 +799,9 @@ Ketik 'menu' untuk melihat menu ini lagi.
     }
 
     document.addEventListener('click', (e) => {
-        if (e.target !== gamesTerminalInput) {
-            if (gamesCurrentState === 'flappybird') {
-                handleFlappyBirdInput('spasi');
-            }
+        // Hanya pemicu Flappy Bird jika game sedang aktif dan klik di luar input
+        if (gamesCurrentState === 'flappybird' && e.target !== gamesTerminalInput) {
+            handleFlappyBirdInput('spasi');
         }
     });
 
@@ -538,7 +833,6 @@ Ketik 'clear' untuk membersihkan chat.
         chatbotTerminalInput.focus();
     }
 
-    showChatbotMenu();
 
     chatbotTerminalInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
@@ -580,4 +874,9 @@ Ketik 'clear' untuk membersihkan chat.
                 break;
         }
     }
+
+    // Panggil fungsi untuk mengisi menu game dan chatbot di awal
+    // PENTING: Baris ini DIPINDAHKAN ke SINI agar gamesMenu dan chatbotMenu sudah didefinisikan!
+    showGamesMenu();
+    showChatbotMenu();
 });
