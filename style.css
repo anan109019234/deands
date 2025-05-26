@@ -37,10 +37,11 @@ body {
 
 .intro-screen.fade-out {
     opacity: 0;
-    visibility: hidden;
-    transform: translateY(-100vh);
+    visibility: visible;
+    transform: translateY(-100vh); /* Menggeser ke atas */
 }
 
+/* Biarkan ini jika Anda ingin efek slide-down saat masuk lagi */
 .intro-screen.slide-down-from-top {
     opacity: 1;
     visibility: visible;
@@ -52,7 +53,7 @@ body {
     position: absolute; /* Posisikan absolut dalam intro-screen */
     top: 0;
     height: 100%;
-    width: 25vw; /* Lebar 25% dari viewport width */
+    width: 17vw; /* Lebar 25% dari viewport width */
     z-index: 999; /* Di bawah intro-content tapi di atas background */
     opacity: 0.7; /* Sedikit transparan */
 }
@@ -79,6 +80,7 @@ body {
     max-width: 500px;
     width: 90%; /* Responsive width */
     z-index: 1001; /* Pastikan di atas canvas matrix */
+    animation: float 3s ease-in-out infinite; /* Animasi mengambang */
 }
 
 .ascii-art-intro {
@@ -99,13 +101,14 @@ body {
     border: 2px solid #859F3D;
     object-fit: cover;
     margin-bottom: 20px;
+    animation: float 3s ease-in-out infinite 0.5s; /* Animasi mengambang dengan sedikit delay */
 }
 
 .intro-heading {
     font-size: 3em;
     margin: 0;
     text-shadow: 0 0 15px rgba(133, 159, 61, 0.9), 0 0 25px rgba(133, 159, 61, 0.6);
-    animation: text-glow 1.5s infinite alternate;
+    animation: text-glow 1.5s infinite alternate, float 3s ease-in-out infinite 1s; /* Animasi glow dan mengambang dengan delay */
 }
 
 @keyframes text-glow {
@@ -115,6 +118,13 @@ body {
     to {
         text-shadow: 0 0 15px rgba(133, 159, 61, 0.9), 0 0 30px rgba(133, 159, 61, 0.6);
     }
+}
+
+/* Keyframes untuk animasi mengambang */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); } /* Mengambang naik 10px */
+    100% { transform: translateY(0px); }
 }
 
 .launch-btn {
@@ -129,6 +139,7 @@ body {
     transition: all 0.3s ease;
     margin-top: 30px;
     margin-bottom: 30px;
+    animation: float 3s ease-in-out infinite 1.5s; /* Animasi mengambang dengan delay */
 }
 
 .launch-btn:hover {
@@ -150,30 +161,28 @@ body {
     height: 100vh;
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
-    transition: opacity 0.7s ease-in-out, visibility 0.7s ease-in-out, transform 0.7s ease-in-out;
+    /* transition diatur di JS */
+    display: none; /* Default tersembunyi */
 }
 
-.main-portfolio.hidden {
+.main-portfolio.active {
+    display: grid; /* Tampilkan sebagai grid saat aktif */
+}
+
+/* KELAS BARU UNTUK TRANSISI KELUAR (KE ATAS) DARI PORTFOLIO KE INTRO */
+.main-portfolio.slide-up-from-bottom {
+    transform: translateY(-100vh); /* Geser ke atas keluar layar */
     opacity: 0;
     visibility: hidden;
-    position: absolute;
-    top: 0;
-    left: 0;
-    transform: translateY(100vh);
-    z-index: -1;
+    transition: transform 0.7s ease-in-out, opacity 0.7s ease-in-out, visibility 0.7s ease-in-out;
 }
 
-.main-portfolio.slide-up-from-bottom {
+/* Transisi masuk untuk main-portfolio (dari atas ke bawah) */
+.main-portfolio.slide-down-from-top {
+    transform: translateY(0);
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
-}
-
-.main-portfolio.slide-up-to-top {
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-100vh);
+    transition: transform 0.7s ease-in-out, opacity 0.7s ease-in-out, visibility 0.7s ease-in-out;
 }
 
 
@@ -245,7 +254,65 @@ body {
     background-color: rgba(0, 0, 0, 0.8);
     box-shadow: 0 0 15px rgba(133, 159, 61, 0.3);
     overflow: hidden;
+
+    /* Transition untuk animasi masuk/keluar individual */
+    transition: transform 0.7s ease-out, opacity 0.7s ease-out;
 }
+
+/* Initial States (di luar layar) */
+.cv-terminal.initial-state {
+    transform: translateX(-100vw);
+    opacity: 0;
+}
+.games-terminal.initial-state {
+    transform: translateY(-100vh);
+    opacity: 0;
+}
+.chatbot-terminal.initial-state {
+    transform: translateY(100vh);
+    opacity: 0;
+}
+.logo-bottom.initial-state {
+    transform: translateX(100vw);
+    opacity: 0;
+}
+
+/* Animated States (masuk ke dalam layar) */
+.cv-terminal.slide-in-left {
+    transform: translateX(0);
+    opacity: 1;
+}
+.games-terminal.slide-in-top {
+    transform: translateY(0);
+    opacity: 1;
+}
+.chatbot-terminal.slide-in-bottom {
+    transform: translateY(0);
+    opacity: 1;
+}
+.logo-bottom.slide-in-right {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* Animated States (keluar dari layar) */
+.cv-terminal.slide-out-left {
+    transform: translateX(-100vw);
+    opacity: 0;
+}
+.games-terminal.slide-out-top {
+    transform: translateY(-100vh);
+    opacity: 0;
+}
+.chatbot-terminal.slide-out-bottom {
+    transform: translateY(100vh);
+    opacity: 0;
+}
+.logo-bottom.slide-out-right {
+    transform: translateX(100vw);
+    opacity: 0;
+}
+
 
 /* === ANIMASI TERMINAL KIRI (CV) === */
 .cv-terminal {
