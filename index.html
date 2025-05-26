@@ -1,86 +1,90 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gede Ananta Pradnya - Portfolio Terminal</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="assets/icon.png" type="image/x-icon">
-</head>
-<body>
-    <div class="intro-screen" id="intro-screen">
-        <canvas id="matrix-left" class="matrix-canvas"></canvas>
-        <canvas id="matrix-right" class="matrix-canvas"></canvas>
+ <html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gede Ananta Pradnya - Portfolio Terminal</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="assets/icon.png" type="image/x-icon">
+ </head>
+ <body>
+  <div class="intro-screen" id="intro-screen">
+   <canvas id="matrix-left" class="matrix-canvas"></canvas>
+   <canvas id="matrix-right" class="matrix-canvas"></canvas>
 
-        <div class="intro-content">
-            <img src="assets/icon.png" alt="Profile Photo" class="intro-photo">
-            <h1 class="intro-heading">N474DS</h1>
-            <pre class="ascii-art-intro">
- ____ ____ ____ ____
-|____|____|____|____|
-|  __|  __| __ | __ |
-| |  | |  | || | || |
-| |__| |__| ||_| ||_|
-|____|____|____||____|
+   <div class="intro-content">
+    <img src="assets/icon.png" alt="Profile Photo" class="intro-photo">
+    <h1 class="intro-heading">N474DS</h1>
+    <pre class="ascii-art-intro">
+  ____ ____ ____ ____
+ |____|____|____|____|
+ |  __|  __| __ | __ |
+ | |  | |  | || | || |
+ | |__| |__| ||_| ||_|
+ |____|____|____||____|
 
-            </pre>
-            <button id="launch-terminal-btn" class="launch-btn">LAUNCH TERMINAL</button>
-            <span class="copyright-text">&copy; 2025 xnijn95. All rights reserved.</span>
-        </div>
+    </pre>
+    <button id="launch-terminal-btn" class="launch-btn">LAUNCH TERMINAL</button>
+    <span class="copyright-text">&copy; 2024 NajaDS. All rights reserved.</span>
+   </div>
+  </div>
+
+  <div class="main-portfolio" id="main-portfolio" style="display: none;">
+   <div class="grid-container">
+    <div class="window cv-terminal initial-state">
+     <div class="window-header">
+      <span class="window-title"><img src="assets/ds-logo.png" alt="Folder Icon" class="logo-icon"> About Me</span>
+      <div class="window-controls">
+       <span class="ctrl">&#9472;</span>
+       <span class="ctrl">&#9723;</span>
+       <span class="ctrl">&#10005;</span>
+      </div>
+     </div>
+     <div class="window-body" id="cv-terminal-output"></div>
     </div>
 
-    <div class="main-portfolio hidden" id="main-portfolio">
-        <div class="grid-container">
-            <div class="window cv-terminal">
-                <div class="window-header">
-                    <span class="window-title"><img src="assets/ds-logo.png" alt="Folder Icon" class="logo-icon"> About Me</span>
-                    <div class="window-controls">
-                        <span class="ctrl">&#9472;</span>
-                        <span class="ctrl">&#9723;</span>
-                        <span class="ctrl">&#10005;</span>
-                    </div>
-                </div>
-                <div class="window-body" id="cv-terminal-output"></div>
-            </div>
-
-            <div class="window games-terminal">
-                <div class="window-header">
-                    <span class="window-title"><img src="assets/ds-logo.png" alt="Game Icon" class="logo-icon"> NajaDS Games</span>
-                    <div class="window-controls">
-                        <span class="ctrl">&#9472;</span>
-                        <span class="ctrl">&#9723;</span>
-                        <span class="ctrl">&#10005;</span>
-                    </div>
-                </div>
-                <div class="window-body" id="games-terminal-output"></div>
-                <div class="terminal-input-wrapper">
-                    <span class="prompt">user@games:~$</span>
-                    <input type="text" id="games-terminal-input" autocomplete="off">
-                </div>
-            </div>
-
-            <div class="window chatbot-terminal">
-                <div class="window-header">
-                    <span class="window-title"><img src="assets/ds-logo.png" alt="Chat Icon" class="logo-icon"> NajaDS Chatbot</span>
-                    <div class="window-controls">
-                        <span class="ctrl">&#9472;</span>
-                        <span class="ctrl">&#9723;</span>
-                        <span class="ctrl">&#10005;</span>
-                    </div>
-                </div>
-                <div class="window-body" id="chatbot-terminal-output"></div>
-                <div class="terminal-input-wrapper">
-                    <span class="prompt">user@chatbot:~$</span>
-                    <input type="text" id="chatbot-terminal-input" autocomplete="off">
-                </div>
-            </div>
-
-            <div class="logo-bottom">
-                <img id="main-logo-return" src="assets/p1.png" alt="NAJADS Logo">
-            </div>
-        </div>
+    <div class="window games-terminal initial-state">
+     <div class="window-header">
+      <span class="window-title"><img src="assets/ds-logo.png" alt="Game Icon" class="logo-icon"> NajaDS Games</span>
+      <div class="window-controls">
+       <span class="ctrl">&#9472;</span>
+       <span class="ctrl">&#9723;</span>
+       <span class="ctrl">&#10005;</span>
+      </div>
+     </div>
+     <div class="window-body" id="games-terminal-output"></div>
+     <div class="terminal-input-wrapper">
+      <span class="prompt">user@games:~$</span>
+      <input type="text" id="games-terminal-input" autocomplete="off">
+     </div>
     </div>
 
-    <script src="script.js"></script>
-</body>
-</html>
+    <div class="window chatbot-terminal initial-state">
+     <div class="window-header">
+      <span class="window-title"><img src="assets/ds-logo.png" alt="Chat Icon" class="logo-icon"> NajaDS Chatbot</span>
+      <div class="window-controls">
+       <span class="ctrl">&#9472;</span>
+       <span class="ctrl">&#9723;</span>
+       <span class="ctrl">&#10005;</span>
+      </div>
+     </div>
+     <div class="window-body" id="chatbot-terminal-output"></div>
+     <div class="terminal-input-wrapper">
+      <span class="prompt">user@chatbot:~$</span>
+      <input type="text" id="chatbot-terminal-input" autocomplete="off">
+     </div>
+    </div>
+
+    <div class="logo-bottom initial-state">
+     <img id="main-logo-return" src="assets/p1.png" alt="NAJADS Logo">
+    </div>
+   </div>
+  </div>
+
+  <img id="jumpscare-gif" src="assets/jumpscare.gif" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1001; display: none; object-fit: contain;">
+  <audio id="jumpscare-audio" src="assets/teriakan.mp3" preload="auto"></audio>
+
+  <audio id="grudge-sound" src="assets/grudge.mp3" preload="auto"></audio> 
+  <script src="script.js"></script>
+ </body>
+ </html>
