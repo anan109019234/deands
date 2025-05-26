@@ -1,0 +1,518 @@
+/* === GLOBAL === */
+body {
+    background-color: #000000;
+    color: #859F3D; /* Warna teks hijau terminal */
+    font-family: 'Courier New', monospace;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow-x: hidden; /* Default: Sembunyikan overflow horizontal */
+    overflow-y: hidden; /* Default: Sembunyikan overflow vertical untuk desktop */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.5s ease-in-out;
+}
+
+/* --- Intro Screen Styling --- */
+.intro-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #859F3D;
+    font-family: 'Courier New', monospace;
+    z-index: 1000;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity 0.7s ease-in-out, visibility 0.7s ease-in-out, transform 0.7s ease-in-out;
+}
+
+.intro-screen.fade-out {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-100vh);
+}
+
+.intro-screen.slide-down-from-top {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Gaya untuk canvas Matrix */
+.matrix-canvas {
+    position: absolute; /* Posisikan absolut dalam intro-screen */
+    top: 0;
+    height: 100%;
+    width: 25vw; /* Lebar 25% dari viewport width */
+    z-index: 999; /* Di bawah intro-content tapi di atas background */
+    opacity: 0.7; /* Sedikit transparan */
+}
+
+#matrix-left {
+    left: 0;
+}
+
+#matrix-right {
+    right: 0;
+}
+
+
+.intro-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    border: 1px solid #859F3D;
+    box-shadow: 0 0 15px rgba(133, 159, 61, 0.3);
+    background-color: rgba(0, 0, 0, 0.8);
+    max-width: 500px;
+    width: 90%; /* Responsive width */
+    z-index: 1001; /* Pastikan di atas canvas matrix */
+}
+
+.ascii-art-intro {
+    font-size: 1.1em;
+    line-height: 1.1;
+    white-space: pre;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.intro-photo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 2px solid #859F3D;
+    object-fit: cover;
+    margin-bottom: 20px;
+}
+
+.intro-heading {
+    font-size: 3em;
+    margin: 0;
+    text-shadow: 0 0 15px rgba(133, 159, 61, 0.9), 0 0 25px rgba(133, 159, 61, 0.6);
+    animation: text-glow 1.5s infinite alternate;
+}
+
+@keyframes text-glow {
+    from {
+        text-shadow: 0 0 10px rgba(133, 159, 61, 0.7), 0 0 20px rgba(133, 159, 61, 0.4);
+    }
+    to {
+        text-shadow: 0 0 15px rgba(133, 159, 61, 0.9), 0 0 30px rgba(133, 159, 61, 0.6);
+    }
+}
+
+.launch-btn {
+    background-color: #859F3D;
+    color: #000000;
+    border: 1px solid #859F3D;
+    padding: 12px 30px;
+    font-family: 'Courier New', monospace;
+    font-size: 1.4em;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(133, 159, 61, 0.5);
+    transition: all 0.3s ease;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.launch-btn:hover {
+    background-color: #000000;
+    color: #859F3D;
+    box-shadow: 0 0 20px rgba(133, 159, 61, 0.8);
+}
+
+.copyright-text {
+    display: block;
+    font-size: 0.9em;
+    opacity: 0.7;
+}
+
+
+/* --- Main Portfolio Styling (Existing) --- */
+.main-portfolio {
+    width: 100%;
+    height: 100vh;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity 0.7s ease-in-out, visibility 0.7s ease-in-out, transform 0.7s ease-in-out;
+}
+
+.main-portfolio.hidden {
+    opacity: 0;
+    visibility: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translateY(100vh);
+    z-index: -1;
+}
+
+.main-portfolio.slide-up-from-bottom {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.main-portfolio.slide-up-to-top {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-100vh);
+}
+
+
+/* Grid Container Utama */
+.grid-container {
+    display: grid;
+    grid-template-columns: minmax(300px, 2fr) 1fr 1fr;
+    grid-template-rows: 1.8fr 1fr min-content;
+    grid-template-areas:
+        "cv games games"
+        "cv chatbot logo";
+
+    height: 100vh;
+    gap: 20px;
+    padding: 20px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 1600px;
+}
+
+/* Penempatan area grid */
+.cv-terminal {
+    grid-area: cv;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-width: 300px;
+}
+
+.games-terminal {
+    grid-area: games;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    min-width: 300px;
+}
+
+.chatbot-terminal {
+    grid-area: chatbot;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-width: 300px;
+}
+
+.logo-bottom {
+    grid-area: logo;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: space-evenly;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    padding-right: 10px;
+}
+
+.logo-bottom img {
+    width: 300px;
+    height: auto;
+    opacity: 0.9;
+    cursor: pointer;
+}
+
+/* === WINDOW STYLING UMUM === */
+.window {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #859F3D;
+    background-color: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 15px rgba(133, 159, 61, 0.3);
+    overflow: hidden;
+}
+
+/* === ANIMASI TERMINAL KIRI (CV) === */
+.cv-terminal {
+    position: relative;
+}
+.cv-terminal::before,
+.cv-terminal::after {
+    content: '';
+    position: absolute;
+    background: linear-gradient(to right, rgba(133, 159, 61, 0), rgba(133, 159, 61, 0.8), rgba(133, 159, 61, 0));
+    animation: scanline 4s linear infinite;
+    z-index: 1;
+}
+
+.cv-terminal::before {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    transform-origin: left;
+    transform: translateX(-100%);
+}
+
+.cv-terminal::after {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    transform-origin: right;
+    animation-delay: 2s;
+    transform: translateX(100%);
+}
+
+@keyframes scanline {
+    0% { transform: translateX(-100%); opacity: 0.4; }
+    50% { transform: translateX(100%); opacity: 0.8; }
+    100% { transform: translateX(-100%); opacity: 0.4; }
+}
+
+/* Efek glitch/noise background */
+.cv-terminal .window-body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.1"/></svg>');
+    background-size: 4px 4px;
+    opacity: 0.1;
+    pointer-events: none;
+    z-index: 0;
+}
+
+
+/* === HEADER JENDELA === */
+.window-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    border-bottom: 1px solid #859F3D;
+    background-color: rgba(0, 0, 0, 0.6);
+    flex-shrink: 0;
+}
+
+.window-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+}
+
+.logo-icon {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+.window-controls {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.window-controls .ctrl {
+    padding: 0 8px;
+    border-left: 1px solid #859F3D;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    cursor: pointer;
+}
+
+.window-controls .ctrl:first-child {
+    border-left: none;
+}
+
+/* === ISI JENDELA (BODY) === */
+.window-body {
+    padding: 12px;
+    overflow-y: auto;
+    flex: 1;
+    white-space: pre-wrap;
+    position: relative;
+    z-index: 1;
+    min-height: 0;
+}
+
+/* Hapus scrollbar pada Games Terminal */
+.games-terminal .window-body {
+    overflow-y: hidden;
+    overflow-x: hidden;
+    white-space: pre;
+}
+
+/* Sesuaikan ukuran font dan line-height khusus untuk konten GAME */
+.games-terminal .window-body.ascii {
+    font-size: 13px;
+    line-height: 1.1;
+    white-space: pre;
+}
+
+/* Sesuaikan ukuran font dan line-height untuk CHATBOT */
+.chatbot-terminal .window-body {
+    font-size: 0.9em;
+    line-height: 1.2;
+}
+
+
+/* === TERMINAL INPUT === */
+.terminal-input-wrapper {
+    padding: 10px 12px;
+    border-top: 1px solid #859F3D;
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+input[type="text"] {
+    background: transparent;
+    border: none;
+    color: #859F3D;
+    font-family: 'Courier New', monospace;
+    font-size: 1em;
+    width: calc(100% - 130px);
+    outline: none;
+    padding: 0;
+    margin-left: 2px;
+}
+
+/* ASCII ART & TYPING EFFECT (Non-Games) */
+.window-body.ascii {
+    color: #859F3D;
+    font-size: 14px;
+    line-height: 1.1;
+    white-space: pre;
+}
+
+.typing::after {
+    content: '|';
+    animation: blink-caret .75s step-end infinite;
+}
+
+@keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: #859F3D; }
+}
+
+/* === RESPONSIVE MOBILE === */
+@media (max-width: 768px) {
+    .matrix-canvas {
+        width: 15vw; /* Lebih kecil di mobile agar tidak terlalu memenuhi layar */
+        opacity: 0.4; /* Lebih transparan di mobile */
+    }
+
+    body {
+        overflow-y: auto;
+        overflow-x: auto;
+        height: auto;
+    }
+
+    .intro-screen {
+        transform: none;
+    }
+
+    .intro-heading {
+        font-size: 2em;
+    }
+
+    .launch-btn {
+        font-size: 1.1em;
+        padding: 10px 20px;
+    }
+
+    .main-portfolio.hidden {
+        transform: translateY(100vh);
+    }
+    .main-portfolio.slide-up-from-bottom {
+        transform: translateY(0);
+    }
+    .main-portfolio.slide-up-to-top {
+        transform: translateY(-100vh);
+    }
+
+    .grid-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto auto;
+        grid-template-areas:
+            "cv"
+            "games"
+            "chatbot"
+            "logo";
+        padding: 10px;
+        gap: 15px;
+        height: auto;
+        min-height: 100vh;
+        overflow-y: auto;
+        max-width: unset;
+    }
+
+    .window {
+        height: auto;
+        min-height: 200px;
+    }
+
+    .cv-terminal {
+        min-height: 300px;
+        min-width: unset;
+    }
+
+    .games-terminal {
+        min-height: 250px;
+        overflow: hidden;
+        min-width: unset;
+    }
+
+    .chatbot-terminal {
+        min-height: 250px;
+        min-width: unset;
+    }
+
+    .logo-bottom {
+        justify-content: center;
+        margin-top: 10px;
+        margin-bottom: 0px;
+        padding-bottom: 0;
+        padding-right: 0;
+    }
+
+    .logo-bottom img {
+        width: 150px;
+    }
+
+    input[type="text"] {
+        width: calc(100% - 90px);
+        font-size: 0.9em;
+    }
+
+    .window-body {
+        font-size: 0.85em;
+    }
+
+    .games-terminal .window-body.ascii {
+        font-size: 13px;
+        line-height: 1.1;
+        white-space: pre;
+    }
+}
